@@ -1,5 +1,5 @@
 openai>=1.42.0
-whisper @ git+https://github.com/openai/whisper.git
+openai-whisper>=20231117
 tiktoken>=0.7.0
 typer[all]>=0.12.3
 pydantic>=2.9.0
