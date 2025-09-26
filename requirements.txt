@@ -1,0 +1,8 @@
+openai>=1.42.0
+whisper @ git+https://github.com/openai/whisper.git
+tiktoken>=0.7.0
+typer[all]>=0.12.3
+pydantic>=2.9.0
+python-dotenv>=1.0.1
+rich>=13.7.1
+requests>=2.32.3
