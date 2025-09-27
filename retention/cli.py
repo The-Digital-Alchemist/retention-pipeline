@@ -2,7 +2,7 @@ import typer
 from pathlib import Path
 import whisper
 from retention.nlp.chunk import chunk_file, chunk_text
-
+from retention.nlp.summarize import summarize_file
 
 
 model = whisper.load_model("base")
@@ -34,8 +34,9 @@ def run(lecture: str):
     chunk_file(str(transcription_path))
 
 
-    print("All Done!")
+    print("Done chunking. Summarizing now...")
 
+    summarize_file("data/chunks/chunks.json")
 
 
 
