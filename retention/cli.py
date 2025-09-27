@@ -1,6 +1,9 @@
 import typer
 from pathlib import Path
 import whisper
+from retention.nlp.chunk import chunk_file, chunk_text
+
+
 
 model = whisper.load_model("base")
 app = typer.Typer()
@@ -11,14 +14,28 @@ app = typer.Typer()
 def run(lecture: str):
 
     path = Path(lecture)
-    if path.exists():
-        print (f"Got file: {lecture} \n Transcribing....")
-        result = model.transcribe(lecture)
-        with open("output.txt", "w", encoding="utf-8") as f:
-            f.write(result["text"]) # type: ignore
-       
-    else:
+
+
+    if not path.exists():
         print (f"file not found: {lecture}")
+        return
+    
+  
+    print (f"Got file: {lecture} \n Transcribing....")
+    result = model.transcribe(str(lecture))
+
+
+    # save the raw transcription
+    transcription_path =  Path("data/transcriptions") / f"{path.stem}_transcription.txt"
+    transcription_path.parent.mkdir(parents=True, exist_ok=True)
+    transcription_path.write_text(str(result["text"]), encoding="UTF-8") 
+
+    print(f"chunking lecture {lecture} transcriptions..")
+    chunk_file(str(transcription_path))
+
+
+    print("All Done!")
+
 
 
 
