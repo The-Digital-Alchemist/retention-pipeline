@@ -33,10 +33,12 @@ def run(lecture: str):
     print(f"chunking lecture {lecture} transcriptions..")
     chunk_file(str(transcription_path))
 
+    # Generate the expected chunk file path
+    chunk_file_path = f"data/chunks/{path.stem}_transcription_chunks.json"
 
     print("Done chunking. Summarizing now...")
 
-    summarize_file("data/chunks/chunks.json")
+    summarize_file(chunk_file_path)
 
 
 

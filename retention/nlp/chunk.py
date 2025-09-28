@@ -26,8 +26,7 @@ def chunk_text(transcription: str):
         chunks.append({"id": len(chunks) + 1, "text": chunk_text })
         i += chunk_size - overlap
 
-    with open("data/chunks/chunks.json", "w", encoding="UTF-8") as f:
-        f.write(json.dumps(chunks, ensure_ascii=False, indent=2))
+    return chunks
 
 
 
@@ -51,6 +50,8 @@ def chunk_file(filename: str, output_dir : str = "data/chunks"):
 
 
     typer.echo(f"chunks saved to {output_path}")
+
+
 if __name__ == "__main__":
     app()
 
