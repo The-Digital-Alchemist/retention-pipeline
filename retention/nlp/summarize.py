@@ -1,4 +1,4 @@
-from retention.nlp.prompts import CHUNK_SUMMARY_PROMPT
+from retention.nlp.prompts import CHUNK_SUMMARY_PROMPT, MASTER_SUMMARY_PROMPT
 from openai import OpenAI
 from dotenv import load_dotenv
 import os
@@ -75,6 +75,64 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
             f.write("\n\n")
 
     typer.echo(f" Summaries saved to {summaries_path}")
+
+    print("Creating a master summary...")
+
+    master_summary(summaries, str(summaries_path))
+
+
+
+
+
+@app.command()
+def master_summary(summaries_list: list, output_path: str):
+    """
+    Generate a master summary of the most valuable, important and relevant information."""
+
+
+    # Join the summaries into a single string
+
+    summaries = "\n".join([s["summary"] for s in summaries_list])
+
+    # Construct the user prompt
+    master_prompt = MASTER_SUMMARY_PROMPT.format(summaries=summaries)
+
+    # Send the prompt to the OpenAI API
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "You are one of the top superlearners in the world"},
+            {"role": "user", "content": master_prompt}
+        ],
+        temperature=0
+    )
+
+    # Parse the response
+    content = response.choices[0].message.content
+
+    print("Raw content from API:")
+    print(repr(content))
+    print("---")
+
+    try:
+        parsed = json.loads(content) # type: ignore
+    except json.JSONDecodeError as e:
+        print(f"JSON parsing error: {e}")
+        print("Failed to parse master summary JSON")
+        return
+
+    # Appending the master summary to the output file
+    with open(output_path, "a", encoding="UTF-8") as f:
+        f.write("\n\n# Master summary\n\n")
+        f.write(f"**Summary:** {parsed.get("summary", "")}\n\n")
+        f.write("**Key Points:**\n")
+        for p in parsed.get("key_points", []):
+            f.write(f"- {p}\n")
+        f.write("\n**Questions:**\n")
+        for q in parsed.get("questions", []):
+            f.write(f"- {q}\n")
+
+
 
 if __name__ == "__main__":
     app()
