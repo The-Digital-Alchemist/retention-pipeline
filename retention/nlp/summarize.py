@@ -74,7 +74,13 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
                 f.write(f"- {q}\n")
             f.write("\n\n")
 
+    # Write sidecar JSON for quick flashcards
+    summaries_json_path = Path(output_dir) / f"{path.stem}_summaries.json"
+    with open(summaries_json_path, "w", encoding="utf-8") as f:
+        json.dump(summaries, f, ensure_ascii=False, indent=2)
+
     typer.echo(f" Summaries saved to {summaries_path}")
+    typer.echo(f" Summaries JSON saved to {summaries_json_path}")
 
     print("Creating a master summary...")
 
