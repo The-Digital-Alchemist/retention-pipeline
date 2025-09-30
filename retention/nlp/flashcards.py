@@ -52,7 +52,6 @@ def deep_flashcard(filename : str, output_dir : str = "data/flashcards"):
 
         content = response.choices[0].message.content
 
-        print(content) # Debugging purposes
         all_flashcards.append(content)
 
     # Write the flashcards to a file
@@ -93,7 +92,6 @@ def quick_flashcard(filename : str, output_dir : str = "data/flashcards"):
         temperature=0
     )
     content = response.choices[0].message.content
-    print(content) # Debugging purposes
     all_flashcards.append(content)
 
     # Write the flashcards to a file

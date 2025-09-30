@@ -49,7 +49,7 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
         try:
             parsed = json.loads(content) # type: ignore
         except json.JSONDecodeError:
-            print(f"Failed to parse JSON for chunk {chunk['id']}, raw output:\n{content}")
+            typer.echo(f"Failed to parse JSON for chunk {chunk['id']}, raw output:\n{content}")
             continue
 
         # Store structured summary
@@ -82,7 +82,7 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
     typer.echo(f" Summaries saved to {summaries_path}")
     typer.echo(f" Summaries JSON saved to {summaries_json_path}")
 
-    print("Creating a master summary...")
+    typer.echo("Creating a master summary...")
 
     master_summary(summaries, str(summaries_path))
 
@@ -116,15 +116,12 @@ def master_summary(summaries_list: list, output_path: str):
     # Parse the response
     content = response.choices[0].message.content
 
-    print("Raw content from API:")
-    print(repr(content))
-    print("---")
 
     try:
         parsed = json.loads(content) # type: ignore
     except json.JSONDecodeError as e:
-        print(f"JSON parsing error: {e}")
-        print("Failed to parse master summary JSON")
+        typer.echo(f"JSON parsing error: {e}")
+        typer.echo("Failed to parse master summary JSON")
         return
 
     # Appending the master summary to the output file

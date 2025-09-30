@@ -17,11 +17,11 @@ def run(lecture: str):
 
 
     if not path.exists():
-        print (f"file not found: {lecture}")
+        typer.echo(f"file not found: {lecture}")
         return
     
   
-    print (f"Got file: {lecture} \n Transcribing....")
+    typer.echo(f"Got file: {lecture} \n Transcribing....")
     result = model.transcribe(str(lecture))
 
 
@@ -30,13 +30,13 @@ def run(lecture: str):
     transcription_path.parent.mkdir(parents=True, exist_ok=True)
     transcription_path.write_text(str(result["text"]), encoding="UTF-8") 
 
-    print(f"chunking lecture {lecture} transcriptions..")
+    typer.echo(f"chunking lecture {lecture} transcriptions..")
     chunk_file(str(transcription_path))
 
     # Generate the expected chunk file path
     chunk_file_path = f"data/chunks/{path.stem}_transcription_chunks.json"
 
-    print("Done chunking. Summarizing now...")
+    typer.echo("Done chunking. Summarizing now...")
 
     summarize_file(chunk_file_path)
 
