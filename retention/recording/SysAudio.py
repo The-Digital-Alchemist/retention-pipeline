@@ -62,6 +62,61 @@ def record_system_audio_to_wav(output_path, duration_seconds, device_id, channel
     return output_path
 
 
+class AudioRecorder:
+    # For GUI - start/stop recording on demand
+    def __init__(self, device_id, channels=1):
+        self.device_id = device_id
+        self.channels = channels
+        self.sample_rate = get_device_samplerate(device_id)
+        self.stream = None
+        self.audio_data = []
+        self.is_recording = False
+    
+    def start_recording(self):
+        # Start recording audio
+        if self.is_recording:
+            return
+        
+        self.audio_data = []
+        self.is_recording = True
+        
+        def audio_callback(indata, frames, time, status):
+            if self.is_recording:
+                self.audio_data.append(indata.copy())
+        
+        self.stream = sd.InputStream(
+            device=self.device_id,
+            channels=self.channels,
+            samplerate=self.sample_rate,
+            callback=audio_callback
+        )
+        self.stream.start()
+    
+    def stop_recording(self):
+        # Stop recording and return audio data
+        if not self.is_recording:
+            return None, self.sample_rate
+        
+        self.is_recording = False
+        if self.stream:
+            self.stream.stop()
+            self.stream.close()
+            self.stream = None
+        
+        if self.audio_data:
+            audio = np.concatenate(self.audio_data, axis=0)
+            return audio, self.sample_rate
+        return None, self.sample_rate
+    
+    def save_recording(self, output_path):
+        # Save the recorded audio to a file
+        if self.audio_data:
+            audio = np.concatenate(self.audio_data, axis=0)
+            save_wav(output_path, audio, self.sample_rate)
+            return output_path
+        return None
+
+
 @app.command()
 def devices():
     # Show all audio devices
