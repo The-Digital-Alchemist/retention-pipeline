@@ -23,8 +23,10 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
 
     # Build output path
     path = Path(filename)
-    summaries_path = Path(output_dir) / f"{path.stem}_summary.md"
-    summaries_path.parent.mkdir(parents=True, exist_ok=True)
+    # Extract base name by removing _chunks from the stem
+    base_name = path.stem.replace("_chunks", "")
+    summaries_path = Path(output_dir) / f"{base_name}_summary.md"
+    summaries_json_path = Path(output_dir) / f"{base_name}_summaries.json"
 
     # Loop through chunks
     for chunk in chunks:

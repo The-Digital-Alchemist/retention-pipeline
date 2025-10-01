@@ -27,7 +27,7 @@ def run(lecture: str):
 
 
     # save the raw transcription
-    transcription_path =  Path("data/transcriptions") / f"{path.stem}_transcription.txt"
+    transcription_path = Path("data/transcriptions") / f"{path.stem}.txt"
     transcription_path.parent.mkdir(parents=True, exist_ok=True)
     transcription_path.write_text(str(result["text"]), encoding="UTF-8") 
 
@@ -35,8 +35,8 @@ def run(lecture: str):
     chunk_file(str(transcription_path))
 
     # Generate the expected chunk file path
-    chunk_file_path = f"data/chunks/{path.stem}_transcription_chunks.json"
-
+    chunk_file_path = f"data/chunks/{path.stem}_chunks.json"
+    
     typer.echo("Done chunking. Summarizing now...")
 
     summarize_file(chunk_file_path)
