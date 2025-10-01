@@ -3,6 +3,7 @@ from pathlib import Path
 import whisper
 from retention.nlp.chunk import chunk_file, chunk_text
 from retention.nlp.summarize import summarize_file
+from retention.validation import validate_file
 
 
 model = whisper.load_model("base")
@@ -13,12 +14,12 @@ app = typer.Typer()
 
 def run(lecture: str):
 
-    path = Path(lecture)
+    path = Path(lecture)    
 
+    if not validate_file(path):
+        typer.echo("Validation failed. Please check the errors above.", err=True)
+        raise typer.Exit(1)
 
-    if not path.exists():
-        typer.echo(f"file not found: {lecture}")
-        return
     
   
     typer.echo(f"Got file: {lecture} \n Transcribing....")
