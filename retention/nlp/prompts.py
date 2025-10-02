@@ -18,12 +18,13 @@ Summaries:
 
 
 DEEP_FLASHCARD_PROMPT = """
-Pretend you're designing a quiz to train someone's to be the best at the provided topic.
+Pretend you're designing a quiz to train someone to be the best at the provided topic.
 Task:
-- Create flashcards from the provided transcript text.
+- Create flashcards based on the provided content.
 - The questions should be challenging and test deep understanding of the material.
 - Avoid trivia, dates, or obscure details. Focus on key concepts, mechanisms, and insights.
 - Keep answers concise, accurate, and directly tied to the question.
+- Write questions as if testing knowledge directly, not referencing any source material.
 
 Format rules:
 - Return ONLY flashcards in the following format, no extra text, no explanations:
@@ -34,20 +35,21 @@ Back: (Answer here)
 Tags: (Optional comma-separated tags)
 END
 
-Transcript:
+Content:
 {transcript}
 """
 
 
 
 QUICK_FLASHCARD_PROMPT = """
-Pretend you’re designing a 5-minute quiz to test someone’s understanding of the main concepts, not the details
+Pretend you're designing a 5-minute quiz to test someone's understanding of the main concepts, not the details
 Task:
-- Create flashcards from the provided summaries.
+- Create flashcards based on the provided content.
 - The questions should be challenging and test deep understanding of the material.
 - Limit to a maximum of 10 cards.
 - Avoid trivia, dates, or obscure details. Focus on key concepts, mechanisms, and insights.
 - Keep answers concise, accurate, and directly tied to the question.
+- Write questions as if testing knowledge directly, not referencing any source material.
 
 Format rules:
 - Return ONLY flashcards in the following format, no extra text, no explanations:
@@ -58,6 +60,6 @@ Back: (Answer here)
 Tags: (Optional comma-separated tags)
 END
 
-Summaries:
+Content:
 {summaries}
 """
