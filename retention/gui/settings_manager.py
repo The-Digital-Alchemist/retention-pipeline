@@ -43,6 +43,6 @@ class SettingsManager:
         
         if "flashcards" not in defaults:
             defaults["flashcards"] = {}
-        defaults["flashcards"] = {**defaults["flashcards"], **self._get_default_settings()["flashcards"]}
+        defaults["flashcards"] = {**self._get_default_settings()["flashcards"], **defaults["flashcards"]}
         
         return defaults
