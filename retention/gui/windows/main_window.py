@@ -1,8 +1,16 @@
 from PySide6.QtWidgets import QWidget, QHBoxLayout, QPushButton, QApplication
 from PySide6.QtCore import Qt, Signal, QPoint
 from PySide6.QtGui import QMouseEvent, QShortcut, QKeySequence, QCursor
+from pathlib import Path
+from datetime import datetime
+import whisper
+import json
 
 from .settings import SettingsDialog
+from ...recording.SysAudio import AudioRecorder
+from ...nlp.chunk import chunk_file
+from ...nlp.summarize import summarize_file
+from ...nlp.flashcards import deep_flashcard, quick_flashcard
 
 
 class MainWindow(QWidget):
@@ -15,6 +23,10 @@ class MainWindow(QWidget):
         self.api_key = api_key
         self.is_recording = False
         self.flashcard_settings = {"enabled": True, "mode": "quick"}
+        
+        self.audio_recorder = AudioRecorder(device_id=14, channels=1)
+        self.data_dir = Path("data")
+        self.data_dir.mkdir(exist_ok=True)
         
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -35,7 +47,7 @@ class MainWindow(QWidget):
         self.record_btn.setCursor(QCursor(Qt.CursorShape.PointingHandCursor))
         self.record_btn.clicked.connect(self._on_record_clicked)
         
-        self.stop_btn = QPushButton("⏹️")
+        self.stop_btn = QPushButton("■")
         self.stop_btn.setObjectName("stopButton")
         self.stop_btn.setFixedSize(50, 50)
         self.stop_btn.setToolTip("Stop")
@@ -125,10 +137,65 @@ class MainWindow(QWidget):
             event.accept()
     
     def start_recording(self):
-        pass
+        try:
+            self.audio_recorder.start_recording()
+        except Exception as e:
+            print(f"Recording error: {e}")
     
     def stop_recording(self):
-        pass
+        try:
+            audio, sample_rate = self.audio_recorder.stop_recording()
+            if audio is not None:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                output_path = self.data_dir / f"recording_{timestamp}.wav"
+                self.audio_recorder.save_recording(str(output_path))
+                print(f"Recording saved: {output_path}")
+                
+                self._run_pipeline(str(output_path), timestamp)
+        except Exception as e:
+            print(f"Stop recording error: {e}")
+    
+    def _run_pipeline(self, audio_path, timestamp):
+        try:
+            print("Starting pipeline...")
+            
+            model = whisper.load_model("base")
+            
+            print("Transcribing...")
+            result = model.transcribe(audio_path)
+            
+            transcription_path = self.data_dir / "transcriptions" / f"recording_{timestamp}.txt"
+            transcription_path.parent.mkdir(parents=True, exist_ok=True)
+            transcription_path.write_text(result["text"], encoding="UTF-8") # type: ignore
+            print(f"Transcription saved: {transcription_path}")
+            
+            print("Chunking...")
+            chunk_file(str(transcription_path))
+            chunk_file_path = self.data_dir / "chunks" / f"recording_{timestamp}_chunks.json"
+            print(f"Chunks saved: {chunk_file_path}")
+            
+            print("Summarizing...")
+            summarize_file(str(chunk_file_path))
+            summaries_path = self.data_dir / "summaries" / f"recording_{timestamp}_summaries.json"
+            print(f"Summaries saved: {summaries_path}")
+            
+            if self.flashcard_settings.get("enabled", False):
+                print("Generating flashcards...")
+                flashcard_mode = self.flashcard_settings.get("mode", "quick")
+                
+                if flashcard_mode == "deep":
+                    deep_flashcard(str(chunk_file_path))
+                    flashcard_path = self.data_dir / "flashcards" / f"recording_{timestamp}_chunks_flashcards.md"
+                else:
+                    quick_flashcard(str(summaries_path))
+                    flashcard_path = self.data_dir / "flashcards" / f"recording_{timestamp}_summaries_flashcards.md"
+                
+                print(f"Flashcards saved: {flashcard_path}")
+            
+            print("Pipeline completed successfully!")
+            
+        except Exception as e:
+            print(f"Pipeline error: {e}")
     
     def get_api_key(self):
         return self.api_key
