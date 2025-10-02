@@ -172,6 +172,16 @@ class MainWindow(QWidget):
             border-color: #c53030;
         }
         
+        #stopButton:!disabled {
+            border-color: #e53e3e;
+            background-color: #fff5f5;
+        }
+        
+        #stopButton:hover:!disabled {
+            background-color: #fed7d7;
+            border-color: #c53030;
+        }
+        
         #closeButton {
             background-color: #f7fafc;
             color: #a0aec0;
