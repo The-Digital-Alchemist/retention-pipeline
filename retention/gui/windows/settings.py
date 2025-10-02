@@ -4,7 +4,6 @@ from PySide6.QtGui import QCursor
 
 
 class SettingsDialog(QDialog):
-    
     settings_changed = Signal(dict)
     
     def __init__(self, parent=None, current_api_key=""):
@@ -14,7 +13,6 @@ class SettingsDialog(QDialog):
         self.setFixedSize(420, 320)
         self.setModal(True)
         self.setStyleSheet(self._get_stylesheet())
-        
         self._setup_ui()
     
     def _setup_ui(self):
@@ -22,7 +20,6 @@ class SettingsDialog(QDialog):
         layout.setSpacing(18)
         layout.setContentsMargins(35, 35, 35, 35)
         
-        # API Key section
         api_label = QLabel("API Key")
         api_label.setStyleSheet("color: #2d3748; font-size: 13px; font-weight: 600; margin-bottom: 4px;")
         
@@ -34,11 +31,9 @@ class SettingsDialog(QDialog):
         self.api_key_input.setText(self.current_api_key)
         self.api_key_input.setObjectName("apiKeyInput")
         
-        # Trust signal
         trust_label = QLabel("Stored locally, never shared")
         trust_label.setStyleSheet("color: #a0aec0; font-size: 11px; margin-top: 2px;")
         
-        # Flashcard toggle (pill style)
         toggle_container = QHBoxLayout()
         toggle_container.setSpacing(12)
         
@@ -55,7 +50,6 @@ class SettingsDialog(QDialog):
         toggle_container.addWidget(self.flashcards_toggle)
         toggle_container.addStretch()
         
-        # Mode buttons (always present, just hidden when not needed)
         mode_layout = QHBoxLayout()
         mode_layout.setSpacing(0)
         
@@ -81,7 +75,6 @@ class SettingsDialog(QDialog):
         mode_layout.addWidget(self.deep_btn)
         mode_layout.addStretch()
         
-        # Done button
         self.done_btn = QPushButton("Done")
         self.done_btn.setMinimumHeight(32)
         self.done_btn.setMaximumHeight(32)
@@ -90,7 +83,6 @@ class SettingsDialog(QDialog):
         self.done_btn.clicked.connect(self._on_done)
         self.done_btn.setObjectName("doneButton")
         
-        # Add all widgets
         layout.addWidget(api_label)
         layout.addWidget(self.api_key_input)
         layout.addWidget(trust_label)
@@ -157,7 +149,6 @@ class SettingsDialog(QDialog):
             border-color: #3182ce;
         }
         
-        /* Modern toggle switch style */
         #toggleSwitch {
             width: 28px;
             height: 16px;
@@ -173,15 +164,6 @@ class SettingsDialog(QDialog):
         
         #toggleSwitch::indicator:checked {
             background-color: #3182ce;
-        }
-        
-        #toggleSwitch::indicator:unchecked {
-            background-color: #e2e8f0;
-        }
-        
-        /* Add a small circle indicator */
-        #toggleSwitch::indicator:checked {
-            background-color: #3182ce;
             background-image: radial-gradient(circle, white 6px, transparent 6px);
             background-position: right 2px center;
             background-repeat: no-repeat;
@@ -194,7 +176,6 @@ class SettingsDialog(QDialog):
             background-repeat: no-repeat;
         }
         
-        /* Segmented control buttons */
         #modeButtonLeft, #modeButtonRight {
             background-color: #f7fafc;
             color: #4a5568;
@@ -231,7 +212,6 @@ class SettingsDialog(QDialog):
             background-color: #2c5aa0;
         }
         
-        /* Done button */
         #doneButton {
             background-color: #3182ce;
             color: white;

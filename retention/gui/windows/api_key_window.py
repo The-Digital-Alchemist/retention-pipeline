@@ -5,7 +5,6 @@ from PySide6.QtGui import QFont, QCursor
 
 
 class APIKeySplash(QDialog):
-    
     api_key_submitted = Signal(str)
     
     def __init__(self, parent=None):
@@ -16,7 +15,6 @@ class APIKeySplash(QDialog):
         self.setStyleSheet(self._get_stylesheet())
         
         self._center_on_screen()
-        self.existing_key = self._load_from_env()
         self._setup_ui()
     
     def _center_on_screen(self):
@@ -92,14 +90,6 @@ class APIKeySplash(QDialog):
         
         self.api_key_input.setFocus()
     
-    def _load_from_env(self):
-        try:
-            from dotenv import load_dotenv
-            load_dotenv()
-            return os.getenv("OPENAI_API_KEY", "")
-        except ImportError:
-            return ""
-    
     def _save_to_env(self, api_key):
         env_path = os.path.join(os.getcwd(), ".env")
         
@@ -120,8 +110,19 @@ class APIKeySplash(QDialog):
             return
         
         self._save_to_env(api_key)
+        self._save_to_settings(api_key)
         self.api_key_submitted.emit(api_key)
         self.accept()
+    
+    def _save_to_settings(self, api_key):
+        try:
+            from ..settings_manager import SettingsManager
+            settings_manager = SettingsManager()
+            settings = settings_manager.load_settings()
+            settings["api_key"] = api_key
+            settings_manager.save_settings(settings)
+        except ImportError:
+            pass
     
     def _get_stylesheet(self):
         return """
