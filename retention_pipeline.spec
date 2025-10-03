@@ -5,12 +5,13 @@ from PyInstaller.utils.hooks import collect_data_files
 block_cipher = None
 
 tiktoken_datas = collect_data_files('tiktoken', includes=['*.tiktoken', '*.json'])
+whisper_datas = collect_data_files('whisper', includes=['assets/*'])
 
 a = Analysis(
     ['run_gui.py'],
     pathex=[],
     binaries=[],
-    datas=[('data', 'data')] + tiktoken_datas,
+    datas=[('data', 'data')] + tiktoken_datas + whisper_datas,
     hiddenimports=[
         'PySide6.QtCore',
         'PySide6.QtWidgets',
