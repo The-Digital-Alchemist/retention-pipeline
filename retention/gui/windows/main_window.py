@@ -39,7 +39,7 @@ class MainWindow(QWidget):
         self.flashcard_settings = {"enabled": True, "mode": "quick"}
         self.current_audio_file = None
 
-        self.audio_recorder = AudioRecorder(device_id=14, channels=1)
+        self.audio_recorder = AudioRecorder()
         self.data_dir = Path("data")
         self.data_dir.mkdir(exist_ok=True)
 
@@ -294,7 +294,7 @@ class MainWindow(QWidget):
                 "}\n"
                 "QMessageBox QPushButton:hover {\n"
                 "    background-color: #1d4ed8;\n"
-                "    cursor: pointer;\n"
+                "    cursor: pointinghand;\n"
                 "}\n"
                 "QMessageBox QPushButton:pressed {\n"
                 "    background-color: #1e3a8a;\n"

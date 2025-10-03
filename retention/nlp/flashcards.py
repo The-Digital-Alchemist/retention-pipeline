@@ -2,6 +2,7 @@ from retention.nlp.prompts import DEEP_FLASHCARD_PROMPT, QUICK_FLASHCARD_PROMPT
 from openai import OpenAI
 import typer
 from dotenv import load_dotenv
+from typing import Optional
 from pathlib import Path
 import os
 import json
@@ -10,18 +11,37 @@ app = typer.Typer()
 
 load_dotenv()
 
-def get_client(api_key: str):
+def _resolve_api_key(api_key: Optional[str]) -> str:
+    candidates = [
+        api_key,
+        os.getenv("OPENAI_API_KEY"),
+        os.getenv("OPENAI_APIKEY"),
+        os.getenv("OPENAI_KEY"),
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        cleaned = candidate.strip()
+        if cleaned:
+            return cleaned
+    raise ValueError("API key is required")
+
+
+def get_client(api_key: Optional[str]):
     """Get OpenAI client using API key provided by caller (entry point)."""
-    if not api_key:
-        raise ValueError("API key is required")
-    return OpenAI(api_key=api_key)
+    key = _resolve_api_key(api_key)
+    return OpenAI(api_key=key)
+
 
 @app.command()
 
-def deep_flashcard(filename : str, output_dir : str = "data/flashcards", api_key: str = None):
+def deep_flashcard(filename: str, output_dir: str = "data/flashcards", api_key: Optional[str] = None):
     """
     Convert the raw transcript into Anki-styled flashcards. A bit heavy on usage, but good for retaining maximum knowledge.
     """
+
+    resolved_api_key = _resolve_api_key(api_key)
+    client = OpenAI(api_key=resolved_api_key)
 
     # Load the JSON chunks
     chunks = json.load(open(filename, "r", encoding="UTF-8"))
@@ -43,7 +63,6 @@ def deep_flashcard(filename : str, output_dir : str = "data/flashcards", api_key
 
 
         # Send the prompt to the OpenAI API
-        client = get_client(api_key)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -65,11 +84,14 @@ def deep_flashcard(filename : str, output_dir : str = "data/flashcards", api_key
 
 
 @app.command()
-def quick_flashcard(filename : str, output_dir : str = "data/flashcards", api_key: str = None):
+def quick_flashcard(filename: str, output_dir: str = "data/flashcards", api_key: Optional[str] = None):
     """
     Convert the raw transcript into Anki-styled flashcards. A bit heavy on usage, but good for retaining maximum knowledge.
     """
     
+    resolved_api_key = _resolve_api_key(api_key)
+    client = OpenAI(api_key=resolved_api_key)
+
     # Load the summaries
     summaries = json.load(open(filename, "r", encoding="UTF-8"))
     summaries = [s["summary"] for s in summaries]
@@ -86,7 +108,6 @@ def quick_flashcard(filename : str, output_dir : str = "data/flashcards", api_ke
     user_prompt = QUICK_FLASHCARD_PROMPT.format(summaries=summaries)
 
     # Send the prompt to the OpenAI API
-    client = get_client(api_key)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[

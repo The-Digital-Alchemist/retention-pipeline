@@ -1,6 +1,7 @@
 from retention.nlp.prompts import CHUNK_SUMMARY_PROMPT, MASTER_SUMMARY_PROMPT
 from openai import OpenAI
 from dotenv import load_dotenv
+from typing import Optional
 import os
 import typer
 from pathlib import Path
@@ -10,17 +11,38 @@ app = typer.Typer()
 
 load_dotenv()
 
-def get_client(api_key: str):
+def _resolve_api_key(api_key: Optional[str]) -> str:
+    candidates = [
+        api_key,
+        os.getenv("OPENAI_API_KEY"),
+        os.getenv("OPENAI_APIKEY"),
+        os.getenv("OPENAI_KEY"),
+    ]
+    for candidate in candidates:
+        if not candidate:
+            continue
+        cleaned = candidate.strip()
+        if cleaned:
+            return cleaned
+    raise ValueError("API key is required")
+
+
+def get_client(api_key: Optional[str]):
     """Get OpenAI client using API key provided by caller (entry point)."""
-    if not api_key:
-        raise ValueError("API key is required")
-    return OpenAI(api_key=api_key)
+    key = _resolve_api_key(api_key)
+    return OpenAI(api_key=key)
+
 
 @app.command()
-def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: str = None):
+def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: Optional[str] = None):
     """
     Summarize each chunk from a chunks.json file into a single Markdown file.
     """
+    output_dir_path = Path(output_dir)
+    output_dir_path.mkdir(parents=True, exist_ok=True)
+    resolved_api_key = _resolve_api_key(api_key)
+    client = OpenAI(api_key=resolved_api_key)
+
     # Load chunks.json
     chunks = json.load(open(filename, "r", encoding="utf-8"))    
     summaries = []
@@ -29,8 +51,8 @@ def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: s
     path = Path(filename)
     # Extract base name by removing _chunks from the stem
     base_name = path.stem.replace("_chunks", "")
-    summaries_path = Path(output_dir) / f"{base_name}_summary.md"
-    summaries_json_path = Path(output_dir) / f"{base_name}_summaries.json"
+    summaries_path = output_dir_path / f"{base_name}_summary.md"
+    summaries_json_path = output_dir_path / f"{base_name}_summaries.json"
 
     # Loop through chunks
     for chunk in chunks:
@@ -40,7 +62,6 @@ def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: s
         user_prompt = CHUNK_SUMMARY_PROMPT.format(chunk_text=text)
 
         # Send request to OpenAI
-        client = get_client(api_key)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -82,7 +103,7 @@ def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: s
             f.write("\n\n")
 
     # Write sidecar JSON for quick flashcards
-    summaries_json_path = Path(output_dir) / f"{path.stem}_summaries.json"
+    summaries_json_path = output_dir_path / f"{path.stem}_summaries.json"
     with open(summaries_json_path, "w", encoding="utf-8") as f:
         json.dump(summaries, f, ensure_ascii=False, indent=2)
 
@@ -91,14 +112,14 @@ def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: s
 
     typer.echo("Creating a master summary...")
 
-    master_summary(summaries, str(summaries_path))
+    master_summary(summaries, str(summaries_path), api_key=resolved_api_key)
 
 
 
 
 
 @app.command()
-def master_summary(summaries_list: list, output_path: str, api_key: str = None):
+def master_summary(summaries_list: list, output_path: str, api_key: Optional[str] = None):
     """
     Generate a master summary of the most valuable, important and relevant information."""
 
