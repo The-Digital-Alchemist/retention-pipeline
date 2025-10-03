@@ -1,8 +1,9 @@
 import os
-import typer
 from pathlib import Path
-from dotenv import load_dotenv
+from typing import Optional
 
+import typer
+from dotenv import load_dotenv
 
 app = typer.Typer()
 
@@ -11,26 +12,43 @@ allowed_extensions = [".mp3", ".mp4", ".wav", ".m4a"]
 load_dotenv()
 
 
-def get_api_key():
-    """Return the OpenAI API key from env, local settings.json, or global settings path.
+def sanitize_api_key(value: Optional[str]) -> str:
+    """Normalize an API key string from env/settings."""
+    if not value:
+        return ""
 
-    Order of precedence:
-    1) OPENAI_API_KEY environment variable
-    2) ./settings.json (next to the executable or repo root)
-    3) ~/.retention_pipeline/settings.json (used by SettingsManager)
-    """
+    cleaned = value.strip()
+    if not cleaned:
+        return ""
+
+    # Remove optional export prefix
+    if cleaned.lower().startswith("export "):
+        cleaned = cleaned.split(None, 1)[1].strip()
+
+    if cleaned.upper().startswith("OPENAI_API_KEY="):
+        cleaned = cleaned.split("=", 1)[1].strip()
+
+    # Remove wrapping quotes if present
+    if len(cleaned) >= 2 and cleaned[0] in {'"', "'"} and cleaned[-1] == cleaned[0]:
+        cleaned = cleaned[1:-1].strip()
+
+    return cleaned
+
+
+def get_api_key() -> str:
+    """Return the OpenAI API key from env or settings files."""
     import json
 
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = sanitize_api_key(os.getenv("OPENAI_API_KEY"))
     if api_key:
         return api_key
 
     local_settings = Path("settings.json")
     if local_settings.exists():
         try:
-            with open(local_settings, "r") as f:
+            with open(local_settings, "r", encoding="utf-8") as f:
                 settings = json.load(f)
-                api_key = settings.get("api_key")
+                api_key = sanitize_api_key(settings.get("api_key"))
                 if api_key:
                     return api_key
         except Exception:
@@ -39,9 +57,9 @@ def get_api_key():
     global_settings = Path.home() / ".retention_pipeline" / "settings.json"
     if global_settings.exists():
         try:
-            with open(global_settings, "r") as f:
+            with open(global_settings, "r", encoding="utf-8") as f:
                 settings = json.load(f)
-                api_key = settings.get("api_key")
+                api_key = sanitize_api_key(settings.get("api_key"))
                 if api_key:
                     return api_key
         except Exception:
@@ -50,78 +68,41 @@ def get_api_key():
     return ""
 
 
-def validate_api_key():
-    import json
-    
-    # First try environment variable
-    api_key = os.getenv("OPENAI_API_KEY")
-    
-    # If not found, try local settings.json (working directory)
-    if not api_key:
-        settings_path = Path("settings.json")
-        if settings_path.exists():
-            try:
-                with open(settings_path, "r") as f:
-                    settings = json.load(f)
-                    api_key = settings.get("api_key")
-            except:
-                pass
-
-    # If still not found, try the global settings path used by SettingsManager
-    if not api_key:
-        global_settings_path = Path.home() / ".retention_pipeline" / "settings.json"
-        if global_settings_path.exists():
-            try:
-                with open(global_settings_path, "r") as f:
-                    settings = json.load(f)
-                    api_key = settings.get("api_key")
-            except:
-                pass
-
-    # validate the api key
-    if not api_key:
-        return False
-    elif not api_key.startswith("sk-"):
-        return False
-    else:
-        return True
+def validate_api_key() -> bool:
+    api_key = get_api_key()
+    return bool(api_key and api_key.startswith("sk-"))
 
 
-def validate_file_type(file_path: Path):
-    
-    # Validate the file type
-    extension = file_path.suffix.lower() # Getting the file extension and normalizing it
+def validate_file_type(file_path: Path) -> bool:
+    extension = file_path.suffix.lower()
     if extension in allowed_extensions:
         return True
-    else:
-        typer.echo("Invalid file type. Only audio files are allowed")
-        return False
+
+    typer.echo("Invalid file type. Only audio files are allowed")
+    return False
 
 
-def validate_file_size(file_size: Path):
-
-    # Validate the file size (not less than 1 MB, not more than 1 GB)
-    try: 
-        if file_size.stat().st_size < 1024 * 1024: 
-            typer.echo("file size is less than 1 MB")
-            return False
-        if file_size.stat().st_size > 1024 * 1024 * 1024:
-            typer.echo("file size is greater than 1 GB")
-            return False
-        else:
-            return True
+def validate_file_size(file_size: Path) -> bool:
+    try:
+        size = file_size.stat().st_size
     except FileNotFoundError:
         typer.echo("File not found")
         return False
 
+    if size < 1024 * 1024:
+        typer.echo("file size is less than 1 MB")
+        return False
+    if size > 1024 * 1024 * 1024:
+        typer.echo("file size is greater than 1 GB")
+        return False
+    return True
+
+
 @app.command("validate_file")
 def validate_file(file_path: Path):
-    
-    # Validate the file
     if validate_api_key() and validate_file_type(file_path) and validate_file_size(file_path):
         return True
-    else:
-        return False
+    return False
 
 
 if __name__ == "__main__":

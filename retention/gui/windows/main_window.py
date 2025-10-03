@@ -371,21 +371,10 @@ class MainWindow(QWidget):
                 )
 
     def load_settings(self, settings):
-        self.api_key = settings.get("api_key", "")
+        from ...validation import sanitize_api_key
+
+        self.api_key = sanitize_api_key(settings.get("api_key", ""))
         self.flashcard_settings = settings.get("flashcards", {"enabled": True, "mode": "quick"})
-
-        self._update_flashcard_badge()
-        self._update_api_badge()
-
-        if not self.is_recording and not self.is_processing:
-            if self._is_api_key_valid():
-                self._set_status("Ready to capture.", state="idle")
-            else:
-                self._set_status(
-                    "Add your OpenAI API key to get started.",
-                    state="warning",
-                    detail="Open Settings and paste your key before recording.",
-                )
 
     def _on_close_clicked(self):
         QApplication.quit()
@@ -475,8 +464,20 @@ class MainWindow(QWidget):
             print(f"Stop recording error: {exc}")
             self._set_status("Stop recording failed", state="error", detail=str(exc))
 
+    def _cleanup_intermediate_files(self, *paths: Path) -> None:
+        for path in paths:
+            if not path:
+                continue
+            try:
+                if path.exists():
+                    path.unlink()
+            except Exception as exc:
+                print(f"Cleanup warning for {path}: {exc}")
+
     def _run_pipeline(self, audio_path, timestamp):
         flashcard_path = None
+        transcription_path = None
+        chunk_file_path = None
         try:
             print("Starting pipeline...")
 
@@ -530,6 +531,8 @@ class MainWindow(QWidget):
                 state="success",
                 detail="Outputs are ready in the data folder.",
             )
+
+            self._cleanup_intermediate_files(transcription_path, chunk_file_path)
         except Exception as exc:
             print(f"Pipeline error: {exc}")
             self._set_status(
@@ -609,4 +612,3 @@ class MainWindow(QWidget):
         msg_box.setDefaultButton(QMessageBox.StandardButton.Ok)
         self._style_message_box(msg_box, accent="#dc2626")
         msg_box.exec()
-

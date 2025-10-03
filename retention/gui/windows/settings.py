@@ -12,6 +12,7 @@ from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QCursor
 
 from ..utils.styles import settings_dialog_styles
+from ...validation import sanitize_api_key
 
 
 class SettingsDialog(QDialog):
@@ -19,7 +20,7 @@ class SettingsDialog(QDialog):
 
     def __init__(self, parent=None, current_api_key=""):
         super().__init__(parent)
-        self.current_api_key = current_api_key
+        self.current_api_key = sanitize_api_key(current_api_key)
         self.setWindowTitle("Settings")
         self.setFixedSize(360, 280)
         self.setModal(True)
@@ -117,8 +118,9 @@ class SettingsDialog(QDialog):
             button.setVisible(checked)
 
     def _on_done(self):
+        sanitized_key = sanitize_api_key(self.api_key_input.text())
         settings = {
-            "api_key": self.api_key_input.text().strip(),
+            "api_key": sanitized_key,
             "flashcards": {
                 "enabled": self.flashcards_toggle.isChecked(),
                 "mode": "quick" if self.quick_btn.isChecked() else "deep",
@@ -128,8 +130,9 @@ class SettingsDialog(QDialog):
         self.accept()
 
     def get_settings(self):
+        sanitized_key = sanitize_api_key(self.api_key_input.text())
         return {
-            "api_key": self.api_key_input.text().strip(),
+            "api_key": sanitized_key,
             "flashcards": {
                 "enabled": self.flashcards_toggle.isChecked(),
                 "mode": "quick" if self.quick_btn.isChecked() else "deep",
@@ -137,8 +140,8 @@ class SettingsDialog(QDialog):
         }
 
     def set_settings(self, settings):
-        if "api_key" in settings:
-            self.api_key_input.setText(settings["api_key"])
+        api_key = sanitize_api_key(settings.get("api_key", ""))
+        self.api_key_input.setText(api_key)
 
         if "flashcards" in settings:
             flashcard_settings = settings["flashcards"]
@@ -149,4 +152,3 @@ class SettingsDialog(QDialog):
                     self.quick_btn.setChecked(True)
                 else:
                     self.deep_btn.setChecked(True)
-
