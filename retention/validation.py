@@ -11,14 +11,75 @@ allowed_extensions = [".mp3", ".mp4", ".wav", ".m4a"]
 load_dotenv()
 
 
+def get_api_key():
+    """Return the OpenAI API key from env, local settings.json, or global settings path.
+
+    Order of precedence:
+    1) OPENAI_API_KEY environment variable
+    2) ./settings.json (next to the executable or repo root)
+    3) ~/.retention_pipeline/settings.json (used by SettingsManager)
+    """
+    import json
+
+    api_key = os.getenv("OPENAI_API_KEY")
+    if api_key:
+        return api_key
+
+    local_settings = Path("settings.json")
+    if local_settings.exists():
+        try:
+            with open(local_settings, "r") as f:
+                settings = json.load(f)
+                api_key = settings.get("api_key")
+                if api_key:
+                    return api_key
+        except Exception:
+            pass
+
+    global_settings = Path.home() / ".retention_pipeline" / "settings.json"
+    if global_settings.exists():
+        try:
+            with open(global_settings, "r") as f:
+                settings = json.load(f)
+                api_key = settings.get("api_key")
+                if api_key:
+                    return api_key
+        except Exception:
+            pass
+
+    return ""
+
 
 def validate_api_key():
+    import json
     
+    # First try environment variable
     api_key = os.getenv("OPENAI_API_KEY")
+    
+    # If not found, try local settings.json (working directory)
+    if not api_key:
+        settings_path = Path("settings.json")
+        if settings_path.exists():
+            try:
+                with open(settings_path, "r") as f:
+                    settings = json.load(f)
+                    api_key = settings.get("api_key")
+            except:
+                pass
+
+    # If still not found, try the global settings path used by SettingsManager
+    if not api_key:
+        global_settings_path = Path.home() / ".retention_pipeline" / "settings.json"
+        if global_settings_path.exists():
+            try:
+                with open(global_settings_path, "r") as f:
+                    settings = json.load(f)
+                    api_key = settings.get("api_key")
+            except:
+                pass
 
     # validate the api key
     if not api_key:
-        typer.echo("OPENAI_API_KEY not found in the environment variables")
         return False
     elif not api_key.startswith("sk-"):
         return False

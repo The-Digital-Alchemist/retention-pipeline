@@ -9,11 +9,15 @@ import json
 app = typer.Typer()
 
 load_dotenv()
-api_key = os.getenv("OPENAI_API_KEY")
-client = OpenAI(api_key=api_key)
+
+def get_client(api_key: str):
+    """Get OpenAI client using API key provided by caller (entry point)."""
+    if not api_key:
+        raise ValueError("API key is required")
+    return OpenAI(api_key=api_key)
 
 @app.command()
-def summarize_file(filename: str, output_dir: str = "data/summaries"):
+def summarize_file(filename: str, output_dir: str = "data/summaries", api_key: str = None):
     """
     Summarize each chunk from a chunks.json file into a single Markdown file.
     """
@@ -36,6 +40,7 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
         user_prompt = CHUNK_SUMMARY_PROMPT.format(chunk_text=text)
 
         # Send request to OpenAI
+        client = get_client(api_key)
         response = client.chat.completions.create(
             model="gpt-4o-mini",
             messages=[
@@ -93,7 +98,7 @@ def summarize_file(filename: str, output_dir: str = "data/summaries"):
 
 
 @app.command()
-def master_summary(summaries_list: list, output_path: str):
+def master_summary(summaries_list: list, output_path: str, api_key: str = None):
     """
     Generate a master summary of the most valuable, important and relevant information."""
 
@@ -106,6 +111,7 @@ def master_summary(summaries_list: list, output_path: str):
     master_prompt = MASTER_SUMMARY_PROMPT.format(summaries=summaries)
 
     # Send the prompt to the OpenAI API
+    client = get_client(api_key)
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[

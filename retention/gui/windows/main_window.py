@@ -304,7 +304,7 @@ class MainWindow(QWidget):
             print(f"Chunks saved: {chunk_file_path}")
             
             print("Summarizing...")
-            summarize_file(str(chunk_file_path))
+            summarize_file(str(chunk_file_path), api_key=self.api_key)
             summaries_path = self.data_dir / "summaries" / f"recording_{timestamp}_summaries.json"
             print(f"Summaries saved: {summaries_path}")
             
@@ -313,10 +313,10 @@ class MainWindow(QWidget):
                 flashcard_mode = self.flashcard_settings.get("mode", "quick")
                 
                 if flashcard_mode == "deep":
-                    deep_flashcard(str(chunk_file_path))
+                    deep_flashcard(str(chunk_file_path), api_key=self.api_key)
                     flashcard_path = self.data_dir / "flashcards" / f"recording_{timestamp}_chunks_flashcards.md"
                 else:
-                    quick_flashcard(str(summaries_path))
+                    quick_flashcard(str(summaries_path), api_key=self.api_key)
                     flashcard_path = self.data_dir / "flashcards" / f"recording_{timestamp}_summaries_flashcards.md"
                 
                 print(f"Flashcards saved: {flashcard_path}")
