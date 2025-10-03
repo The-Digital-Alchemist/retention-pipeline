@@ -1,1 +1,0 @@
-# Recording panel component
