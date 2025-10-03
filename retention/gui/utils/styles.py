@@ -1,6 +1,6 @@
-from __future__ import annotations
+﻿from __future__ import annotations
 
-"""Centralized Qt style helpers for Retention GUI."""
+"""Centralized Qt style helpers for Summit - AI Learning Accelerator."""
 
 _MAIN_WINDOW_QSS = """
 QWidget {
@@ -367,3 +367,4 @@ def settings_dialog_styles() -> str:
 def validation_display_styles() -> str:
     """Return the QSS for the validation display panel."""
     return _VALIDATION_DISPLAY_QSS
+

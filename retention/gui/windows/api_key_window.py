@@ -1,4 +1,4 @@
-import os
+﻿import os
 from PySide6.QtWidgets import QDialog, QVBoxLayout, QLineEdit, QPushButton, QLabel
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtGui import QFont, QCursor
@@ -11,7 +11,7 @@ class APIKeySplash(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("Retention Pipeline")
+        self.setWindowTitle("Summit - AI Learning Accelerator")
         self.setFixedSize(500, 400)
         self.setModal(True)
         self.setStyleSheet(self._get_stylesheet())
@@ -35,7 +35,7 @@ class APIKeySplash(QDialog):
         header_layout = QVBoxLayout()
         header_layout.setSpacing(15)
 
-        title = QLabel("Retention Pipeline")
+        title = QLabel("Summit - AI Learning Accelerator")
         title_font = QFont()
         title_font.setPointSize(28)
         title_font.setBold(True)

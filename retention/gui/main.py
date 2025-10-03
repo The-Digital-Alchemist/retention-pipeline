@@ -1,4 +1,4 @@
-import sys
+﻿import sys
 from PySide6.QtWidgets import QApplication
 from .windows.api_key_window import APIKeySplash
 from .windows.main_window import MainWindow
@@ -7,7 +7,7 @@ from .settings_manager import SettingsManager
 
 def main():
     app = QApplication(sys.argv)
-    app.setApplicationName("Retention Pipeline")
+    app.setApplicationName("Summit - AI Learning Accelerator")
     
     settings_manager = SettingsManager()
     settings = settings_manager.load_settings()

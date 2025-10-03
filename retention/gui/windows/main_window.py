@@ -85,10 +85,10 @@ class MainWindow(QWidget):
         title_stack.setContentsMargins(0, 0, 0, 0)
         title_stack.setSpacing(2)
 
-        title_label = QLabel("Retention")
+        title_label = QLabel("Summit")
         title_label.setObjectName("appTitle")
 
-        subtitle_label = QLabel("Capture + summarize")
+        subtitle_label = QLabel("AI Learning Accelerator")
         subtitle_label.setObjectName("appSubtitle")
 
         title_stack.addWidget(title_label)
@@ -182,9 +182,10 @@ class MainWindow(QWidget):
         surface_layout.addWidget(self.status_label)
         surface_layout.addWidget(self.status_detail)
 
-        self.helper_label = QLabel("Need to validate a file? Drag it onto the panel when recording is stopped.")
+        self.helper_label = QLabel("")
         self.helper_label.setObjectName("helperText")
         self.helper_label.setWordWrap(True)
+        self.helper_label.setVisible(False)
 
         surface_layout.addWidget(self.helper_label)
 
@@ -221,6 +222,10 @@ class MainWindow(QWidget):
     def _refresh_chip(self, widget):
         widget.style().unpolish(widget)
         widget.style().polish(widget)
+
+    def _show_helper_message(self, message: str) -> None:
+        self.helper_label.setText(message)
+        self.helper_label.setVisible(True)
 
     def _set_status(self, message, state="idle", detail=None):
         state_labels = {
@@ -418,7 +423,7 @@ class MainWindow(QWidget):
             output_path = self.data_dir / f"recording_{timestamp}.wav"
             self.audio_recorder.save_recording(str(output_path))
             print(f"Recording saved: {output_path}")
-            self.helper_label.setText(f"Recording saved: {output_path.name}")
+            self._show_helper_message(f"Recording saved: {output_path.name}")
 
             file_size = output_path.stat().st_size
             if file_size < 1024 * 1024:
@@ -523,7 +528,7 @@ class MainWindow(QWidget):
             if flashcard_path is not None:
                 outputs.append(flashcard_path.name)
 
-            self.helper_label.setText("Capture again when you are ready.")
+            self._show_helper_message("Capture again when you are ready.")
             self.output_label.setText("Saved files: " + ", ".join(outputs))
             self.output_label.setVisible(True)
             self._set_status(
@@ -601,7 +606,7 @@ class MainWindow(QWidget):
 
     def _show_pipeline_error(self, error_msg):
         self.output_label.setVisible(False)
-        self.helper_label.setText("We hit a snag. Try again when you are ready.")
+        self._show_helper_message("We hit a snag. Try again when you are ready.")
 
         msg_box = QMessageBox(self)
         msg_box.setWindowTitle("Pipeline Error")
@@ -612,3 +617,5 @@ class MainWindow(QWidget):
         msg_box.setDefaultButton(QMessageBox.StandardButton.Ok)
         self._style_message_box(msg_box, accent="#dc2626")
         msg_box.exec()
+
+

@@ -32,7 +32,7 @@ class SettingsDialog(QDialog):
         layout.setSpacing(18)
         layout.setContentsMargins(24, 24, 24, 24)
 
-        header = QLabel("Retention preferences")
+        header = QLabel("Summit preferences")
         header.setObjectName("dialogTitle")
 
         subheader = QLabel("Keep your API key handy and decide how flashcards behave.")

@@ -1,6 +1,6 @@
-#!/usr/bin/env python3
+﻿#!/usr/bin/env python3
 """
-Simple launcher script for the Retention Pipeline GUI
+Simple launcher script for the Summit - AI Learning Accelerator GUI.
 """
 
 import sys
@@ -14,3 +14,4 @@ from retention.gui.main import main
 
 if __name__ == "__main__":
     main()
+    

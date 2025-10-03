@@ -58,7 +58,7 @@ exe = EXE(
     a.zipfiles,
     a.datas,
     [],
-    name='RetentionPipeline',
+    name='SummitAccelerator',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
