@@ -11,17 +11,19 @@
 Summit - AI Learning Accelerator turns every lecture, meeting, or webinar into concise notes and ready-to-study flashcards. Capture audio, generate rich summaries, and build spaced-repetition material in minutes.
 
 ### Highlights
-- **Capture & Transcribe** audio with Whisper for accurate speech-to-text.
+- **Capture & Transcribe** audio with Whisper (runs locally for privacy; requires a decent CPU/GPU).
 - **Summarise Intelligently** using GPT-4o-mini to pull out key insights.
 - **Generate Flashcards** (quick or deep modes) for Obsidian/Anki workflows.
 - **Modern Desktop Experience** built with PySide6 for a minimal Loom-like feel.
 
 ## Quick Start
 
-### Requirements
+🔧 Requirements
+
 - Windows 10/11
 - Python 3.11+
-- OpenAI API key
+- OpenAI API key (for GPT summaries & flashcards)
+- A capable machine for local Whisper transcription (GPU highly recommended)
 
 ### Installation
 ```bash
